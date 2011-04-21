@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Mirror experiements</title>
+</head>
+<body>
+Loading...
+<script type="text/javascript" src="./mirrors.js"></script>
+<p>JavaScript objects are root at J:</p>
+<code> <pre>
+var J= Object.create({a: 1, b:2, get x() {return 'x getter'}}, {
+          c: {value: 3},
+          d: {value: 4, enumerable: true}}
+);
+Object.defineProperty(J,'z',{value: J, configurable: true, enumerable: true, writable: false});
+Object.preventExtensions(J);
+</pre> </code>
+<script type="text/javascript">
+var J= Object.create({a: 1, b:2, get x() {return 'x getter'}}, {
+          c: {value: 3},
+          d: {value: 4, enumerable: true}}
+);
+Object.defineProperty(J,'z',{value: J, configurable: true, enumerable: true, writable: false});
+Object.preventExtensions(J);
+</script>
+<code> <pre>
+//Run tests of normal objects using J as the root object
+var introspector = Mirrors.introspect;
+var j=introspector(J); j;
+</pre> </code>
+<script type="text/javascript">
+var introspector = Mirrors.introspect;
+var j=introspector(J);
+document.write(""+j);
+</script>
+<code> <pre>
+j.prototype
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prototype);
+</script>
+<code> <pre>
+j.extensible
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.extensible);
+</script>
+<code> <pre>
+j.ownProperties
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.ownProperties);
+</script>
+<code> <pre>
+j.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.ownPropertyNames);
+</script>
+<code> <pre>
+j.keys
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.keys);
+</script>
+<code> <pre>
+j.enumerationOrder
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.enumerationOrder);
+</script>
+<code> <pre>
+j.prop("c")
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("c"));
+</script>
+<code> <pre>
+j.prop("x")
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("x"));
+</script>
+<code> <pre>
+j.lookup("x")
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.lookup("x"));
+</script>
+<script type="text/javascript" src="./jsonObjSample.js"></script>
+<code> <pre>
+j.sameAs(introspector(J))
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.sameAs(introspector(J)));
+</script>
+<code> <pre>
+j.sameAs(Mirrors.introspect({ }))
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.sameAs(introspector({ })));
+</script>
+<code> <pre>
+j.typeof
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.typeof);
+</script>
+<code> <pre>
+j.specialClass
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.specialClass);
+</script>
+<code> <pre>
+Mirrors.introspect([ ]).specialClass
+</pre> </code>
+<script type="text/javascript">
+document.write(""+introspector([ ]).specialClass);
+</script>
+<code> <pre>
+var f=introspector(function bar () {return "bar"}); f;
+</pre> </code>
+<script type="text/javascript">
+var f=introspector(function bar () {return "bar"});
+document.write(""+f);
+</script>
+<code> <pre>
+f.name
+</pre> </code>
+<script type="text/javascript">
+document.write(""+f.name);
+</script>
+<code> <pre>
+f.source
+</pre> </code>
+<script type="text/javascript">
+document.write(""+f.source);
+</script>
+<code> <pre>
+f.isBuiltin;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+f.isBuiltin);
+</script>
+<code> <pre>
+introspector(eval).isBuiltin
+</pre> </code>
+<script type="text/javascript">
+document.write(""+introspector(eval).isBuiltin);
+</script>
+<code> <pre>
+j.prop("c").isAccessor; j.prop("c").isData;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("c").isAccessor+" "+j.prop("c").isData);
+</script>
+<code> <pre>
+j.lookup("x").isAccessor; j.lookup("x").isData;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.lookup("x").isAccessor+" "+j.lookup("x").isData);
+</script>
+<code> <pre>
+j.prop("c").configurable; j.prop("c").enumerable; j.prop("c").writable;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("c").configurable+" "+j.prop("c").enumerable+" "+j.prop("c").writable);
+</script>
+<code> <pre>
+j.prop("z").configurable; j.prop("z").enumerable; j.prop("z").writable;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("z").configurable+" "+j.prop("z").enumerable+" "+j.prop("z").writable);
+</script>
+<code> <pre>
+j.prop("c").value
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("c").value);
+</script>
+<code> <pre>
+j.prop("z").value
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("z").value);
+</script>
+<code> <pre>
+j.prop("z").value.sameAs(j)
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("z").value.sameAs(j));
+</script>
+<code> <pre>
+j.prop("d").definedOn.sameAs(j)
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("d").definedOn.sameAs(j));
+</script>
+<code> <pre>
+j.lookup("a").definedOn.sameAs(j)
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.lookup("a").definedOn.sameAs(j));
+</script>
+<code> <pre>
+j.lookup("a").definedOn.sameAs(j.prototype)
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.lookup("a").definedOn.sameAs(j.prototype));
+</script>
+<code> <pre>
+j.lookup("x").getter
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.lookup("x").getter);
+</script>
+<code> <pre>
+j.lookup("x").setter
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.lookup("x").setter);
+</script>
+<hr />
+<script type="text/javascript" src="./jsonObjSample.js"></script>
+<p>The same mirror interfaces can be used to access non-local objects.  For example a JSON encoding of a graph of objects.
+For these tests the JSON object model is rooted at D:</p>
+<code> <pre>
+var D = JSON.parse('[{"obj": 0, "[Prototype]": {"extern": "Object.prototype"}, "extensible": true, "props": [\
+    {"data": "a", "value": 1, "enumerable": true, "configurable": true, "writable": true},\
+    {"data": "b", "value": 2, "enumerable": true, "configurable": true, "writable": false},\
+    {"accessor": "x", "get": {"funcRef": 2}, "enumerable": true, "configurable": true }]},\
+   {"obj":1, "[Prototype]": {"objRef": 0}, "extensible": false, "props": [\
+    {"data": "c", "value": 3, "enumerable": false, "configurable": false, "writable": false},\
+    {"data": "d", "value": 4, "enumerable": false, "configurable": false, "writable": false},\
+    {"data": "z", "value": {"objRef": 1}, "enumerable": true, "configurable": true, "writable": false }]},\
+   {"func":2, "[Prototype]": {"extern": "Function.prototype"}, "src": "function foo() {}", "extensible": true, "props": [\
+    {"data": "prototype", "value": {"objRef": 3}, "enumerable": false, "configurable": true, "writable": true}]},\
+   {"obj": 3, "[Prototype]": {"extern": "Object.prototype"}, "extensible": true, "props": [ \
+    {"data": "constructor", "value": {"objRef": 2}, "enumerable": false, "configurable": true, "writable": true}]}\
+]');
+
+//Run tests on JSON objects using D as domain of JSON objects
+var introspector = Mirrors.introspectJSON;
+//start with object #1 from the domain
+var j=introspector([D,{objRef: 1}]); j;
+</pre> </code>
+<script type="text/javascript">
+var introspector = Mirrors.introspectJSON;
+var j=introspector([D,{objRef: 1}]);
+document.write(""+j);
+</script>
+<code> <pre>
+j.prototype
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prototype);
+</script>
+<code> <pre>
+j.extensible
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.extensible);
+</script>
+<code> <pre>
+j.ownProperties
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.ownProperties);
+</script>
+<code> <pre>
+j.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.ownPropertyNames);
+</script>
+<code> <pre>
+j.keys
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.keys);
+</script>
+<code> <pre>
+j.enumerationOrder
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.enumerationOrder);
+</script>
+<code> <pre>
+j.prop("c")
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("c"));
+</script>
+<code> <pre>
+j.prop("x")
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("x"));
+</script>
+<code> <pre>
+j.lookup("x")
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.lookup("x"));
+</script>
+<code> <pre>
+j.sameAs(introspector([D,{objRef: 1}]))
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.sameAs(introspector([D,{objRef: 1}])));
+</script>
+<code> <pre>
+j.sameAs(Mirrors.introspect([D,{objRef: 0}]))
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.sameAs(introspector([D,{objRef: 0}])));
+</script>
+<code> <pre>
+j.typeof
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.typeof);
+</script>
+<code> <pre>
+j.specialClass
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.specialClass);
+</script>
+<!---------------
+<code> <pre>
+Mirrors.introspect([ ]).specialClass
+</pre> </code>
+<script type="text/javascript">
+document.write(""+introspector([ ]).specialClass);
+</script>
+------------->
+<code> <pre>
+var f=introspector([D,{objRef: 4}]); f;
+</pre> </code>
+<script type="text/javascript">
+var f=introspector([D,{objRef: 4}]);
+document.write(""+f);
+</script>
+<code> <pre>
+f.name
+</pre> </code>
+<script type="text/javascript">
+document.write(""+f.name);
+</script>
+<code> <pre>
+f.source
+</pre> </code>
+<script type="text/javascript">
+document.write(""+f.source);
+</script>
+<code> <pre>
+f.isBuiltin;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+f.isBuiltin);
+</script>
+<code> <pre>
+introspector(eval).isBuiltin
+</pre> </code>
+<script type="text/javascript">
+document.write(""+introspector([D,{extern:"eval"}]).isBuiltin);
+</script>
+<code> <pre>
+j.prop("c").isAccessor; j.prop("c").isData;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("c").isAccessor+" "+j.prop("c").isData);
+</script>
+<code> <pre>
+j.lookup("x").isAccessor; j.lookup("x").isData;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.lookup("x").isAccessor+" "+j.lookup("x").isData);
+</script>
+<code> <pre>
+j.prop("c").configurable; j.prop("c").enumerable; j.prop("c").writable;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("c").configurable+" "+j.prop("c").enumerable+" "+j.prop("c").writable);
+</script>
+<code> <pre>
+j.prop("z").configurable; j.prop("z").enumerable; j.prop("z").writable;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("z").configurable+" "+j.prop("z").enumerable+" "+j.prop("z").writable);
+</script>
+<code> <pre>
+j.prop("c").value
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("c").value);
+</script>
+<code> <pre>
+j.prop("z").value
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("z").value);
+</script>
+<code> <pre>
+j.prop("z").value.sameAs(j)
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("z").value.sameAs(j));
+</script>
+<code> <pre>
+j.prop("d").definedOn.sameAs(j)
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prop("d").definedOn.sameAs(j));
+</script>
+<code> <pre>
+j.lookup("a").definedOn.sameAs(j)
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.lookup("a").definedOn.sameAs(j));
+</script>
+<code> <pre>
+j.lookup("a").definedOn.sameAs(j.prototype)
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.lookup("a").definedOn.sameAs(j.prototype));
+</script>
+<code> <pre>
+j.lookup("x").getter
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.lookup("x").getter);
+</script>
+<code> <pre>
+j.lookup("x").setter
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.lookup("x").setter);
+</script>
+<hr/>
+<p>Testing mirrors that support introspection and evaluation of local objects:</p>
+<code> <pre>
+//First run a few of the same tests on J using a mirror that supports local evaluation
+var introspector = Mirrors.introspectEval;
+var j=introspector(J); j;
+</pre> </code>
+<script type="text/javascript">
+var introspector = Mirrors.introspectEval;
+var j=introspector(J);
+document.write(""+j);
+</script>
+<code> <pre>
+j.prototype
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prototype);
+</script>
+<code> <pre>
+j.extensible
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.extensible);
+</script>
+<code> <pre>
+j.ownProperties
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.ownProperties);
+</script>
+<code> <pre>
+j.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.ownPropertyNames);
+</script>
+<p>Now test the local evaluation methods of these mirrors</p>
+<code> <pre>
+//get a own data property
+j.get("d")
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.get("d"));
+</script>
+<code> <pre>
+//get an inherited access property
+j.get("x")
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.get("x"));
+</script>
+<code> <pre>
+//put a new function valued property (note that J is not extensible)
+j.put("f", introspector(function(a,b) {return a+b}));
+j.get("f")
+</pre> </code>
+<script type="text/javascript">
+j.put("f", introspector(function(a,b) {return a+b}));
+document.write(""+j.get("f"));
+</script>
+<code> <pre>
+//strict put a new function valued property (note that J is not extensible)
+j.put("f", introspector(function(a,b) {return a+b}), "strict");
+j.get("f")
+</pre> </code>
+<script type="text/javascript">
+try {j.put("f", introspector(function(a,b) {return a+b}),"strict")} catch(e) {document.write(e+"<br/>")};
+document.write(""+j.get("f"));
+</script>
+<code> <pre>
+//put a new function valued property on J's prototype
+j.prototype.put("f", introspector(function(a,b) {return a+b}));
+j.get("f")
+</pre> </code>
+<script type="text/javascript">
+j.prototype.put("f", introspector(function(a,b) {return a+b}));
+document.write(""+j.get("f"));
+</script>
+<code> <pre>
+//now invoke it
+j.invoke("f","called ","inherited method")
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.invoke("f","called ","inherited method"));
+</script>
+<code> <pre>
+//call a function directly via its mirror 
+j.get("f").call(undefined,3,introspector({valueOf: function() {return 4}}))
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.get("f").call(undefined,3,introspector({valueOf: function() {return 4}})));
+</script>
+<code> <pre>
+//apply a function directly via its mirror with a local array of mirror arguments
+j.get("f").apply(undefined,[introspector(3),introspector({valueOf: function() {return 4}})])
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.get("f").apply(undefined,[introspector(3),introspector({valueOf: function() {return 4}})]));
+</script>
+<code> <pre>
+//apply a function directly via its mirror with a mirrored array of argumentsd
+j.get("f").apply(undefined,introspector([3,{valueOf: function() {return 4}}]))
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.get("f").apply(undefined,introspector([3,{valueOf: function() {return 4}}])));
+</script>
+<hr/>
+<p>Testing mirrors that support introspection and mutation of local objects:</p>
+<code> <pre>
+//First run a few of the same tests on J using a mirror that supports local mutation
+var introspector = Mirrors.mutate;
+var j=introspector(J); j;
+</pre> </code>
+<script type="text/javascript">
+var introspector = Mirrors.mutate;
+var j=introspector(J);
+document.write(""+j);
+</script>
+<code> <pre>
+j.prototype
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prototype);
+</script>
+<code> <pre>
+j.extensible
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.extensible);
+</script>
+<code> <pre>
+j.ownProperties
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.ownProperties);
+</script>
+<code> <pre>
+j.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.ownPropertyNames);
+</script>
+<p>Now test  mutating the local objects using these mirrors</p>
+<code> <pre>
+var n= {};
+var mn = introspector(n); mn  // a mutable mirror on a new objecty
+</pre> </code>
+<script type="text/javascript">
+var n= {};
+var mn = introspector(n);
+document.write(""+mn);
+</script>
+<code> <pre>
+mn.addProperty('p1',{value: "property p1", writable: true, configurable: true});
+mn.addProperty('p2',{get: introspector(function() {return "property p2"}), configurable: true});
+mn.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+mn.addProperty('p1',{value: "property p1", configurable: true});
+mn.addProperty('p2',{get: introspector(function() {return "property p2"}), configurable: true});
+document.write(""+mn.ownPropertyNames);
+</script>
+<code> <pre>
+n.p1+" "+n.p2   //see if the properties are there on the real object
+</pre> </code>
+<script type="text/javascript">
+document.write(""+n.p1+" "+n.p2);
+</script>
+<code> <pre>
+//try to use the mirror to change the objects prototype (may fail on some systems)
+try {mn.prototype = introspector({p3: "inherited p3"})} catch(e) {e};
+mn.prototype.sameAs(introspector(Object.prototype))  //should be false
+</pre> </code>
+<script type="text/javascript">
+(function () {
+   var temp;
+   try {mn.prototype = introspector({p3: "inherited p3"})} catch(e) {temp = e};
+   if (!temp) temp = mn.prototype.sameAs(introspector(Object.prototype));
+   document.write(""+temp);
+})();
+</script>
+<code> <pre>
+n.p3   //make sure that an inherited property can be accessed via the real objects
+</pre> </code>
+<script type="text/javascript">
+document.write(""+n.p3);
+</script>
+<code> <pre>
+mn.extensible=false;
+mn.extensible
+</pre> </code>
+<script type="text/javascript">
+mn.extensible=false;
+document.write(""+mn.extensible);
+</script>
+<code> <pre>
+mn.addProperty('p4',{value: "property p4", configurable: true});
+mn.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+try {mn.addProperty('p4',{value: "property p4", configurable: true})} catch(e) {document.write(""+e+"<br>")};
+document.write(""+mn.ownPropertyNames);
+</script>
+<code> <pre>
+mn.freeze();
+n.p1="modified value";
+n.p1
+</pre> </code>
+<script type="text/javascript">
+mn.freeze();
+n.p1="modified value";
+document.write(""+n.p1);
+</script>
+<p>Recreate n&mn again to do some mutable property tests</p>
+<code> <pre>
+var n= {};
+var mn = introspector(n);   // a mutable mirror on a new objecty
+mn.addProperty('p1',{value: "property p1", writable: true, configurable: true});
+mn.addProperty('p2',{get: introspector(function() {return "property p2"}), configurable: true});
+mn.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+var n= {};
+var mn = introspector(n);
+mn.addProperty('p1',{value: "property p1", writable: true, configurable: true});
+mn.addProperty('p2',{get: introspector(function() {return "property p2"}), configurable: true});
+document.write(""+mn.ownPropertyNames);
+</script>
+<code> <pre>
+mn.prop('p1');
+</pre> </code>
+<script type="text/javascript">
+document.write(""+mn.prop('p1'));
+</script>
+<code> <pre>
+mn.prop('p1').name="p1x";
+mn.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+mn.prop('p1').name="p1x";
+document.write(""+mn.ownPropertyNames);
+</script>
+<code> <pre>
+n.p1x
+</pre> </code>
+<script type="text/javascript">
+document.write(""+n.p1x);
+</script>
+<code> <pre>
+mn.prop('p1').enumerable; mn.prop('p1').writable;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+mn.prop('p1x').enumerable+" "+ mn.prop('p1x').writable);
+</script>
+<code> <pre>
+mn.prop('p1x').enumerable=true;
+mn.prop('p1x').writable=false;
+mn.prop('p1x').enumerable; mn.prop('p1x').writable;
+</pre> </code>
+<script type="text/javascript">
+mn.prop('p1x').enumerable=true;
+mn.prop('p1x').writable=false;
+document.write(""+mn.prop('p1x').enumerable+" "+ mn.prop('p1x').writable);
+</script>
+<code> <pre>
+mn.prop('p1x').becomeAccessorProperty(introspector(function() {return "p1x is now an accessor"}));
+</pre> </code>
+<script type="text/javascript">
+document.write(""+mn.prop('p1x').becomeAccessorProperty(introspector(function() {return "p1x is now an accessor"})));
+</script>
+<code> <pre>
+n.p1x;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+n.p1x);
+</script>
+<code> <pre>
+mn.prop('p1x').becomeDataProperty("p1x is again a data property",true);
+</pre> </code>
+<script type="text/javascript">
+document.write(""+mn.prop('p1x').becomeDataProperty("p1x is again a data property",true));
+</script>
+<code> <pre>
+n.p1x;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+n.p1x);
+</script>
+<hr/>
+<p>Testing mirrors that support the full suite of introspection, mutation, and evluation of local objects:</p>
+<code> <pre>
+//reinitialize the test data
+var J= Object.create({a: 1, b:2, get x() {return 'x getter'}}, {
+          c: {value: 3},
+          d: {value: 4, enumerable: true}}
+);
+Object.defineProperty(J,'z',{value: J, configurable: true, enumerable: true, writable: false});
+Object.preventExtensions(J);
+</pre> </code>
+<script type="text/javascript">
+var J= Object.create({a: 1, b:2, get x() {return 'x getter'}}, {
+          c: {value: 3},
+          d: {value: 4, enumerable: true}}
+);
+Object.defineProperty(J,'z',{value: J, configurable: true, enumerable: true, writable: false});
+Object.preventExtensions(J);
+</script>
+<code> <pre>
+//Run a bunch of the same tests on J using a mirror that supports full local reflection and evaluation
+var introspector = Mirrors.fullLocal;
+var j=introspector(J); j;
+</pre> </code>
+<script type="text/javascript">
+var introspector = Mirrors.fullLocal;
+var j=introspector(J);
+document.write(""+j);
+</script>
+<code> <pre>
+j.prototype
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prototype);
+</script>
+<code> <pre>
+j.extensible
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.extensible);
+</script>
+<code> <pre>
+j.ownProperties
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.ownProperties);
+</script>
+<code> <pre>
+j.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.ownPropertyNames);
+</script>
+<p>Now test the local evaluation methods of these mirrors</p>
+<code> <pre>
+//get a own data property
+j.get("d")
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.get("d"));
+</script>
+<code> <pre>
+//get an inherited access property
+j.get("x")
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.get("x"));
+</script>
+<code> <pre>
+//put a new function valued property (note that J is not extensible)
+j.put("f", introspector(function(a,b) {return a+b}));
+j.get("f")
+</pre> </code>
+<script type="text/javascript">
+j.put("f", introspector(function(a,b) {return a+b}));
+document.write(""+j.get("f"));
+</script>
+<code> <pre>
+//strict put a new function valued property (note that J is not extensible)
+j.put("f", introspector(function(a,b) {return a+b}), "strict");
+j.get("f")
+</pre> </code>
+<script type="text/javascript">
+try {j.put("f", introspector(function(a,b) {return a+b}),"strict")} catch(e) {document.write(e+"<br/>")};
+document.write(""+j.get("f"));
+</script>
+<code> <pre>
+//put a new function valued property on J's prototype
+j.prototype.put("f", introspector(function(a,b) {return a+b}));
+j.get("f")
+</pre> </code>
+<script type="text/javascript">
+j.prototype.put("f", introspector(function(a,b) {return a+b}));
+document.write(""+j.get("f"));
+</script>
+<code> <pre>
+//now invoke it
+j.invoke("f","called ","inherited method")
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.invoke("f","called ","inherited method"));
+</script>
+<code> <pre>
+//call a function directly via its mirror 
+j.get("f").call(undefined,3,introspector({valueOf: function() {return 4}}))
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.get("f").call(undefined,3,introspector({valueOf: function() {return 4}})));
+</script>
+<code> <pre>
+//apply a function directly via its mirror with a local array of mirror arguments
+j.get("f").apply(undefined,[introspector(3),introspector({valueOf: function() {return 4}})])
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.get("f").apply(undefined,[introspector(3),introspector({valueOf: function() {return 4}})]));
+</script>
+<code> <pre>
+//apply a function directly via its mirror with a mirrored array of argumentsd
+j.get("f").apply(undefined,introspector([3,{valueOf: function() {return 4}}]))
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.get("f").apply(undefined,introspector([3,{valueOf: function() {return 4}}])));
+</script>
+<code> <pre>
+j.extensible
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.extensible);
+</script>
+<code> <pre>
+j.ownProperties
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.ownProperties);
+</script>
+<code> <pre>
+j.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.ownPropertyNames);
+</script>
+<p>Now test  mutating the local objects using these mirrors</p>
+<code> <pre>
+var n= {};
+var mn = introspector(n); mn  // a mutable mirror on a new objecty
+</pre> </code>
+<script type="text/javascript">
+var n= {};
+var mn = introspector(n);
+document.write(""+mn);
+</script>
+<code> <pre>
+mn.addProperty('p1',{value: "property p1", writable: true, configurable: true});
+mn.addProperty('p2',{get: introspector(function() {return "property p2"}), configurable: true});
+mn.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+mn.addProperty('p1',{value: "property p1", configurable: true});
+mn.addProperty('p2',{get: introspector(function() {return "property p2"}), configurable: true});
+document.write(""+mn.ownPropertyNames);
+</script>
+<code> <pre>
+n.p1+" "+n.p2   //see if the properties are there on the real object
+</pre> </code>
+<script type="text/javascript">
+document.write(""+n.p1+" "+n.p2);
+</script>
+<code> <pre>
+//try to use the mirror to change the objects prototype (may fail on some systems)
+try {mn.prototype = introspector({p3: "inherited p3"})} catch(e) {e};
+mn.prototype.sameAs(introspector(Object.prototype))  //should be false
+</pre> </code>
+<script type="text/javascript">
+(function () {
+   var temp;
+   try {mn.prototype = introspector({p3: "inherited p3"})} catch(e) {temp = e};
+   if (!temp) temp = mn.prototype.sameAs(introspector(Object.prototype));
+   document.write(""+temp);
+})();
+</script>
+<code> <pre>
+n.p3   //make sure that an inherited property can be accessed via the real objects
+</pre> </code>
+<script type="text/javascript">
+document.write(""+n.p3);
+</script>
+<code> <pre>
+mn.extensible=false;
+mn.extensible
+</pre> </code>
+<script type="text/javascript">
+mn.extensible=false;
+document.write(""+mn.extensible);
+</script>
+<code> <pre>
+mn.addProperty('p4',{value: "property p4", configurable: true});
+mn.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+try {mn.addProperty('p4',{value: "property p4", configurable: true})} catch(e) {document.write(""+e+"<br>")};
+document.write(""+mn.ownPropertyNames);
+</script>
+<code> <pre>
+mn.freeze();
+n.p1="modified value";
+n.p1
+</pre> </code>
+<script type="text/javascript">
+mn.freeze();
+n.p1="modified value";
+document.write(""+n.p1);
+</script>
+<p>Recreate n&mn again to do some mutable property tests</p>
+<code> <pre>
+var n= {};
+var mn = introspector(n);   // a mutable mirror on a new objecty
+mn.addProperty('p1',{value: "property p1", writable: true, configurable: true});
+mn.addProperty('p2',{get: introspector(function() {return "property p2"}), configurable: true});
+mn.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+var n= {};
+var mn = introspector(n);
+mn.addProperty('p1',{value: "property p1", writable: true, configurable: true});
+mn.addProperty('p2',{get: introspector(function() {return "property p2"}), configurable: true});
+document.write(""+mn.ownPropertyNames);
+</script>
+<code> <pre>
+mn.prop('p1');
+</pre> </code>
+<script type="text/javascript">
+document.write(""+mn.prop('p1'));
+</script>
+<code> <pre>
+mn.prop('p1').name="p1x";
+mn.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+mn.prop('p1').name="p1x";
+document.write(""+mn.ownPropertyNames);
+</script>
+<code> <pre>
+n.p1x
+</pre> </code>
+<script type="text/javascript">
+document.write(""+n.p1x);
+</script>
+<code> <pre>
+mn.prop('p1').enumerable; mn.prop('p1').writable;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+mn.prop('p1x').enumerable+" "+ mn.prop('p1x').writable);
+</script>
+<code> <pre>
+mn.prop('p1x').enumerable=true;
+mn.prop('p1x').writable=false;
+mn.prop('p1x').enumerable; mn.prop('p1x').writable;
+</pre> </code>
+<script type="text/javascript">
+mn.prop('p1x').enumerable=true;
+mn.prop('p1x').writable=false;
+document.write(""+mn.prop('p1x').enumerable+" "+ mn.prop('p1x').writable);
+</script>
+<code> <pre>
+mn.prop('p1x').becomeAccessorProperty(introspector(function() {return "p1x is now an accessor"}));
+</pre> </code>
+<script type="text/javascript">
+document.write(""+mn.prop('p1x').becomeAccessorProperty(introspector(function() {return "p1x is now an accessor"})));
+</script>
+<code> <pre>
+n.p1x;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+n.p1x);
+</script>
+<code> <pre>
+mn.prop('p1x').becomeDataProperty("p1x is again a data property",true);
+</pre> </code>
+<script type="text/javascript">
+document.write(""+mn.prop('p1x').becomeDataProperty("p1x is again a data property",true));
+</script>
+<code> <pre>
+n.p1x;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+n.p1x);
+</script>
+<hr/>
+
+</body>
+</html>	
+
