@@ -62,17 +62,24 @@ var Mirrors = function() {
       
 
 //Base Introspection Mirrors
+
+   var objBasicMirrorProto = {
+      //Implements objectBasicMirrorInterface
+      sameAs: function(other) {return other.__obj && this.__obj === other.__obj},
+      get typeof () {return typeof this.__obj},
+      toString: function() {return "Object Basic Local Mirror #"+this.__id}
+   };
    
-   var objMirrorProto = {
+   var objMirrorProto = Obj.create(objBasicMirrorProto, {
       //Implements objectMirrorInterface
-      get prototype () {return this.__createObjMirrorOn(Obj.getPrototypeOf(this.__obj))},
-      get extensible () {return Obj.isExtensible(this.__obj)},
-      get ownProperties () {
+      prototype: {get: function  () {return this.__createObjMirrorOn(Obj.getPrototypeOf(this.__obj))}},
+      extensible: {get: function () {return Obj.isExtensible(this.__obj)}},
+      ownProperties: {get: function () {
          return this.ownPropertyNames.map(function(key) {return this.prop(key)}.bind(this));
-      },
-      get ownPropertyNames () {return Obj.getOwnPropertyNames(this.__obj)},
-      get keys () {return Obj.keys(this.__obj)},
-      get enumerationOrder () {
+      }},
+      ownPropertyNames: {get: function () {return Obj.getOwnPropertyNames(this.__obj)}},
+      keys: {get: function  () {return Obj.keys(this.__obj)}},
+      enumerationOrder: {get: function () {
          var names = this.keys;
          var seen = Obj.create(null);
          names.forEach(function(n){ seen[n]=n});
@@ -82,27 +89,25 @@ var Mirrors = function() {
             obj=obj.prototype;
          }
          return names;
-       },
-      prop: function(name) {
+       }},
+      prop: {value: function(name) {
          var obj = this.__obj;
          var desc = Obj.getOwnPropertyDescriptor(obj,name);
          if (desc===undefined) return undefined;
          return this.__createPropMirrorOn(this,name);
-      },
-      lookup: function(name) {
+      }},
+      lookup: {value: function(name) {
          var p=this.prop(name);
          if (p) return p;
          var parent = this.prototype;
          if (parent) return parent.lookup(name);
          return undefined;
-      },
-      has: function(name) {return this.lookup(name) !==undefined},
-      hasOwn: function(name) {return this.prop(name) !==undefined},
-      sameAs: function(other) {return this.__obj === other.__obj},
-      get typeof () {return typeof this.__obj},
-      get specialClass() {return {}.toString.call(this.__obj).split(/\s|]/)[1]},
-      toString: function() {return "Object Introspection Mirror #"+this.__id}
-   };
+      }},
+      has: {value: function(name) {return this.lookup(name) !==undefined}},
+      hasOwn: {value: function(name) {return this.prop(name) !==undefined}},
+      specialClass: {get: function() {return {}.toString.call(this.__obj).split(/\s|]/)[1]}},
+      toString: {value: function() {return "Object Introspection Mirror #"+this.__id}}
+   });
 
    function mixinFunctionLocalMirror(proto) {
       return Obj.create(proto,{
@@ -142,7 +147,14 @@ var Mirrors = function() {
       value: {get: function() {return this.__in.__createObjMirrorOn(Obj.getOwnPropertyDescriptor(this.__obj,this.__key).value)}},
       toString: {value: function() {return "Data Property Introspection Mirror name: "+this.__key+ " #"+this.__id}}
     });
-     
+
+   function reflectedValue(mirror) {
+      if (mirror===null) return null;
+      var type = typeof mirror;
+      if (type==='undefined' || type==='number' || type==='boolean' || type==='string') return mirror;
+      return mirror.__obj;
+    };
+    
     var introspectionMirrorProto = Obj.create(objMirrorProto,{
        __createObjMirrorOn: {value: createIntrospectionMirrorOn},
        __createPropMirrorOn: {value: createPropertyIntrospectionMirrorOn}
@@ -189,8 +201,8 @@ var Mirrors = function() {
       extensible:{get: inheritedGetter(objMirrorProto,"extensible"), set: function (b) {
          if (!this.extensible && b) throw Error("A non-extensible object cannot be made extensible");
          if (!b) Obj.preventExtensions(this.__obj)}},
-      seal: {value: function () { this.__createObjMirrorOn(Obj.seal(this.__obj))}},
-      freeze: {value: function () { this.__createObjMirrorOn(Obj.freeze(this.__obj))}},
+      seal: {value: function () {Obj.seal(this.__obj); return this;}},
+      freeze: {value: function () {Obj.freeze(this.__obj); return this;}},
       addProperty: {value: function(name, descriptor) {
          if (this.hasOwn(name)) throw Error('Property "'+name+'" already exists');
          if (!this.extensible ) throw Error("Can't add property to a non-extensible object");
@@ -221,6 +233,7 @@ var Mirrors = function() {
 		           (function() {"use strict"; result= delete this.__in[this.__key]})();
 		        else result= delete this.__in[this.__key];
 		        if (result) this.__in = undefined;
+		        return result;
 		 }},
 		 name: {
 		     get: inheritedGetter(proto,"name"),
@@ -307,8 +320,7 @@ var Mirrors = function() {
           __createPropMirrorOn: {value: createPropertyMutationMirrorOn}
           };
           
-    var mutableLocalMirrorProto = Obj.create(objMutableMirrorProto,mutableFactoryDescriptor);
- 
+    var mutableLocalMirrorProto = Obj.create(objMutableMirrorProto,mutableFactoryDescriptor); 
     var mutableLocalFunctionMirrorProto = Obj.create(
        mixinFunctionLocalMutableMirror(mixinFunctionLocalMirror(objMutableMirrorProto)),
        mutableFactoryDescriptor);
@@ -329,14 +341,7 @@ var Mirrors = function() {
     };
     
 //------------------------------------------------------------------------------
-//--- local object Instrospect+evaluation mirrors
-
-   function reflectedValue(mirror) {
-      if (mirror===null) return null;
-      var type = typeof mirror;
-      if (type==='undefined' || type==='number' || type==='boolean' || type==='string') return mirror;
-      return mirror.__obj;
-    };
+//--- local object evaluation  mixins mirrors
 
    function mixinObjectEval(proto) {
       return Obj.create(proto,{
@@ -372,12 +377,36 @@ var Mirrors = function() {
        });
     };
 
+
+//------------------------------------------------------------------------------
+//--- local object evaluation only mirrors
+
+    var introspectionEvalOnlyMirrorProto = Obj.create(mixinObjectEval(objBasicMirrorProto),{
+       __createObjMirrorOn: {value: createEvaluationMirrorOn},
+       toString: {value:function() {return "Object Evaluation Mirror #"+this.__id}}
+    });
+
+     var introspectionEvalOnlyMirrorFunctionProto = Obj.create(mixinFunctionEval(mixinObjectEval(objBasicMirrorProto)),{
+       __createObjMirrorOn: {value: createEvaluationMirrorOn},
+       toString: {value: function() {return "Function Evaluation Mirror #"+this.__id}}
+    });
+
+    function createEvaluationMirrorOn(obj) {
+       return createObjectMirrorOn(obj,introspectionEvalMirrorProto,introspectionEvalMirrorFunctionProto);
+    };
+
+
+//------------------------------------------------------------------------------
+//--- local object Instrospect+evaluation mirrors
+
     var introspectionEvalMirrorProto = Obj.create(mixinObjectEval(introspectionMirrorProto),{
-       __createObjMirrorOn: {value: createIntrospectionEvalMirrorOn}
+       __createObjMirrorOn: {value: createIntrospectionEvalMirrorOn},
+       toString: {value:function() {return "Object Introspection+Eval Mirror #"+this.__id}}
     });
 
      var introspectionEvalMirrorFunctionProto = Obj.create(mixinFunctionEval(mixinObjectEval(introspectionMirrorFunctionProto)),{
-       __createObjMirrorOn: {value: createIntrospectionEvalMirrorOn}
+       __createObjMirrorOn: {value: createIntrospectionEvalMirrorOn},
+       toString: {value: function() {return "Function Introspection+Eval Mirror #"+this.__id}}
     });
 
     function createIntrospectionEvalMirrorOn(obj) {
@@ -385,7 +414,7 @@ var Mirrors = function() {
     };
  
 //------------------------------------------------------------------------------
-//--- local object introspection_mutation+evaluation mirrors
+//--- local object introspection+mutation+evaluation mirrors
     var introspectionMutationEvalMirrorProto = Obj.create(mixinObjectEval(mutableLocalMirrorProto),{
        __createObjMirrorOn: {value: createMutableEvalMirrorOn},
        toString: {value:function() {return "Local Object Full Access Mirror #"+this.__id}}
@@ -401,9 +430,10 @@ var Mirrors = function() {
     };
 
  
- 
- 
  //------------------------------------------------------------------------------
+ //--- introspection mirrors on an object model of descriptions of a domain of externally defined objects.
+ //--- The object mode can be read/written using JSON encoding
+ 
    var jsonObjMirrorProto = Obj.create(objMirrorProto, {
       prototype: {get: function () {return this.__createObjMirrorOn([this.__domain,this.__domain[this.__ser]["[Prototype]"]])}},
       extensible:{get: function () {return this.__domain[this.__ser].extensible===true}},
@@ -429,18 +459,22 @@ var Mirrors = function() {
       toString: {value:function() {return "JSON Object Introspection Mirror #"+this.__id+" on object "+this.__ser}}
    });
    
-   var jsonFunctionMirrorProto = Obj.create(jsonObjMirrorProto,{
-      typeof: {get: function () {return "function"}},
-      name: {get: function() {return this.__domain[this.__ser].name}},
-      source: {get: function() {return this.__domain[this.__ser].src}},
-      specialClass: {value: "Function"},
-      isBuiltin: {get: function() {return false}},
-      toString: {value: function() {return "JSON Function Introspection Mirror #"+this.__id+" on object "+this.__ser}}
-   });
-
+   function mixinFunctionJSONMirror(proto) {
+      return Obj.create(proto,{
+         typeof: {get: function () {return "function"}},
+         name: {get: function() {return this.__domain[this.__ser].name}},
+         source: {get: function() {return this.__domain[this.__ser].src}},
+         specialClass: {value: "Function"},
+         isBuiltin: {get: function() {return false}},
+         toString: {value: function() {return "JSON Function Introspection Mirror #"+this.__id+" on object "+this.__ser}}
+       });
+    };
+   
+   var jsonFunctionMirrorProto = mixinFunctionJSONMirror(jsonObjMirrorProto);
+         
    var jsonAccessorPropertyMirrorProto  = Obj.create(accessorPropertyMirrorProto, {
-      getter: {get: function() {return this.__createObjMirrorOn([this.__in.__domain,this.__desc.get])}},
-      setter: {get: function() {return this.__createObjMirrorOn([this.__in.__domain,this.__desc.set])}},
+      getter: {get: function() {return this.__in.__createObjMirrorOn([this.__in.__domain,this.__desc.get])}},
+      setter: {get: function() {return this.__in.__createObjMirrorOn([this.__in.__domain,this.__desc.set])}},
       configurable: {get: function () {return this.__desc.configurable===true}},
       enumerable: {get: function () {return this.__desc.enumerable===true}},
       toString: {value: function() {return "JSON Accessor Property Introspection Mirror name: "+this.__key+ " #"+this.__id}}
@@ -448,24 +482,13 @@ var Mirrors = function() {
       
     var jsonDataPropertyMirrorProto  = Obj.create(dataPropertyMirrorProto, {
       writable: {get: function() {return this.__desc.writable===true}},
-      value: {get: function() {return this.__createObjMirrorOn([this.__in.__domain,this.__desc.value])}},
+      value: {get: function() {return this.__in.__createObjMirrorOn([this.__in.__domain,this.__desc.value])}},
       configurable: {get: function () {return this.__desc.configurable===true}},
       enumerable: {get: function () {return this.__desc.enumerable===true}},
       toString: {value: function() {return "JSON Data Property Introspection Mirror name: "+this.__key+ " #"+this.__id}}
     });
     
-    var jsonIntrospectionMirrorProto = Obj.create(jsonObjMirrorProto,{
-       __createObjMirrorOn: {value: createJSONMirrorOn},
-       __createPropMirrorOn: {value: createJSONPropertyMirrorOn}
-    });
- 
-     var jsonIntrospectionMirrorFunctionProto = Obj.create(jsonFunctionMirrorProto,{
-       __createObjMirrorOn: {value: createJSONMirrorOn},
-       __createPropMirrorOn: {value: createJSONPropertyMirrorOn}
-    });
-
- 
-  function createJSONMirrorOn(domainRef /*domain refObj*/ ) {
+  function createJSONObjectMirrorOn(domainRef /*domain refObj*/ , proto,functionProto) {
       var domain,ref;
       var type = typeof domainRef;
       if (domainRef===null) return null;
@@ -480,39 +503,200 @@ var Mirrors = function() {
          return ref;
          if (has(ref,'objRef')) {
             if (has(domain[ref.objRef],'func'))
-               return Obj.create(jsonIntrospectionMirrorFunctionProto,{__domain: {value: domain}, __ser: {value: ref.objRef},__id: {value: serialNumber++}});
-            else return Obj.create(jsonIntrospectionMirrorProto,{__domain: {value: domain}, __ser: {value: ref.objRef}, __id: {value: serialNumber++}});
+               return Obj.create(functionProto,{__domain: {value: domain}, __ser: {value: ref.objRef},__id: {value: serialNumber++}});
+            else return Obj.create(proto,{__domain: {value: domain}, __ser: {value: ref.objRef}, __id: {value: serialNumber++}});
          } else if (has(ref,'extern'))
             return createIntrospectionMirrorOn(eval(ref.extern));
         }
       throw "unknown serialization tag";
     };
-    
-   var jsonDataPropertyIntrospectionMirrorProto = Obj.create(jsonDataPropertyMirrorProto,{
-       __createObjMirrorOn: {value: createJSONMirrorOn}
-    });
-    
-    var jsonAccessorPropertyIntrospectionMirrorProto = Obj.create(jsonAccessorPropertyMirrorProto,{
-       __createObjMirrorOn: {value: createJSONMirrorOn}
-    });
-  
+
    function createJSONPropertyMirrorOn(objMirror,desc) {
       var name = desc.data || desc.accessor;
-      return Obj.create(has(desc,'data')?jsonDataPropertyIntrospectionMirrorProto
-                                        :jsonAccessorPropertyIntrospectionMirrorProto,{
+      return Obj.create(has(desc,'data')?jsonDataPropertyMirrorProto
+                                        :jsonAccessorPropertyMirrorProto,{
          __in: {value: objMirror},
          __key: {value: name},
          __desc:{value: desc},
          __id: {value: serialNumber++}
          });
     };
+        
+    var JSONFactoryDescriptor = {
+          __createObjMirrorOn: {value: createJSONIntrospectionMirrorOn},
+          __createPropMirrorOn: {value: createJSONPropertyMirrorOn}
+          };
+          
+    var jsonIntrospectionMirrorProto = Obj.create(jsonObjMirrorProto,JSONFactoryDescriptor);
+    var jsonIntrospectionMirrorFunctionProto = Obj.create(jsonFunctionMirrorProto,JSONFactoryDescriptor);
+
+    function createJSONIntrospectionMirrorOn(obj) {
+       return createJSONObjectMirrorOn(obj,jsonIntrospectionMirrorProto,jsonIntrospectionMirrorFunctionProto);
+    };
+  
+    
+//------------------------------------------------------------------------------
+//--- JSON object Instrospect+mutation mirrors
+
+   var jsonObjMutableMirrorProto = Obj.create(jsonObjMirrorProto, {
+      //implements objectMirrorInterface + objectMutableMirrorInterface
+      prototype: {get: inheritedGetter(objMirrorProto,"prototype"), set: function (p) {
+         this.__domain[this.__ser]["[Prototype]"]=jsonReflectedValue(p);}},
+      extensible:{get: inheritedGetter(objMirrorProto,"extensible"), set: function (b) {
+         this.__domain[this.__ser].extensible = !!b;}},
+      seal: {value: function () {
+         this.__domain[this.__ser].props
+            .forEach(function(prop) {prop.configurable =  true});
+         this.__domain[this.__ser].extensible = false;
+         return this;}},
+      freeze: {value: function () {
+         this.__domain[this.__ser].props
+            .forEach(function(prop) {prop.configurable = false; if (has(prop,"writable")) prop.writable=false;}); 
+         this.__domain[this.__ser].extensible = false;
+         return this;}},
+      addProperty: {value: function(name, descriptor) {
+         if (this.hasOwn(name)) throw Error('Property "'+name+'" already exists');
+         var desc = { };
+         for (var p in descriptor) desc[p]=jsonReflectedValue(descriptor[p]);        
+         Obj.defineProperty(this.__obj,name,desc);
+         return this.__createPropMirrorOn(this,name);
+      }},
+      toString: {value:function() {return "JSON Data Introspection+Mutation Mirror #"+this.__id}}
+   });
+   
+   function mixinFunctionJSONMutableMirror(proto) {
+      return Obj.create(proto,{
+         //Implements functionMutableMirrorInterface
+         name: {set: function(n) {this.__domain[this.__ser].name=jsonReflectedValue(n)}},
+         source: {set: function(s) {this.__domain[this.__ser].src=jsonReflectedValue(s)}},
+         toString: {value: function() {return "JSON Function Introspection+Mutation Mirror #"+this.__id}}
+       });
+    };
+
+   function mixinMutableJSONPropertyMirror(proto) {
+      return Obj.create(proto,{
+         //Implements propertyMutableMirrorInterface
+		 delete: {value: function (strict) {
+		        //in JSON modeled object we always permit deletes so strict arg is ignored
+		        if (!this.__in) throw Error("Property already deleted");
+		        var obj = this.__in;
+		        var oldProps = obj.__domain[obj.__ser].props;
+		        var name=this.name;
+		        newProps = oldProps.filter(function (p) {return p.data!==name && p.accessor!=name});
+		        obj.__domain[obj.__ser].props = newProps;
+		        this.__in = undefined;
+		        this.__desc = undefined;
+		        return true;
+		 }},
+		 name: {
+		     get: inheritedGetter(proto,"name"),
+		     set: function (p) {
+		        if (this.__in.hasOwn(p))
+		           throw Error("Can't rename a property to an existing own property name");
+		         var desc = this.__desc;
+		         if (desc.data) desc.data=p; else desc.accessor=p;
+		     }
+		 },
+		 enumerable: {
+		     get: inheritedGetter(proto,"enumerable"),
+		     set: function (p) {this.__desc.enumerable = !!p}},
+		 configurable: {
+		     get: inheritedGetter(proto,"configurable"),
+		     set: function (p) {this.__desc.configurable = !!p}},
+         toString: {value: function() {return "JSON Property Introspection+Mutation Mirror #"+this.__id}}
+       });
+    };
+
+
+   function mixinMutableJSONDataPropertyMirror(proto) {
+      return Obj.create(mixinMutableJSONPropertyMirror(proto),{
+         //Implements dataPropertyMutableMirrorInterface
+		 writable: {
+		     get: inheritedGetter(proto,"writable"),
+		     set: function (p) {this.__desc.writable = !!p}},
+		 value: {
+		     get: inheritedGetter(proto,"value"),
+		     set: function (p) {this.__desc.value = JSONreflectedValue(p)}},
+		 becomeAccessorProperty: {value: function(get,set) {
+		     var desc = this.__desc;
+		     delete desc.value;
+		     delete desc.writable;
+		     desc.accessor=desc.data;
+		     delete desc.data;
+		     desc.get = JSONreflectedValue(get);
+		     desc.set = JSONreflectedValue(set);
+		     return this.__in.prop(this.__key);
+         }},		    
+         toString: {value: function() {return "JSON Data Property Introspection+Mutation Mirror #"+this.__id}}
+       });
+    };   
+
+   function mixinMutableJSONAccessorPropertyMirror(proto) {
+      return Obj.create(mixinMutablePropertyMirror(proto),{
+         //Implements accessorPropertyMutableMirrorInterface
+		 getter: {
+		     get: inheritedGetter(proto,"setter"),
+		     set: function (p) {this.__desc.get =  jsonReflectedValue(p)}},
+		 setter: {
+		     get: inheritedGetter(proto,"getter"),
+		     set: function (p) {this.__desc.set =  jsonReflectedValue(p)}},
+		 becomeDataProperty: {value: function(value,writable) {
+		     var desc = this.__desc;
+		     delete desc.get;
+		     delete desc.set;
+		     desc.data=desc.accessor;
+		     delete desc.accessor;
+		     desc.value = jsonReflectedValue(value);
+		     desc.writable = !!writable;
+		     return this.__in.prop(this.__key);
+         }},		    
+         toString: {value: function() {return "JSON Accessor Property Introspection+Mutation Mirror #"+this.__id}}
+       });
+    };
+    
+    
+   var jsonDataPropertyMutableMirrorProto = mixinMutableJSONDataPropertyMirror(jsonDataPropertyMirrorProto);
+   var jsonAccessorPropertyMutableMirrorProto = mixinMutableJSONAccessorPropertyMirror(jsonAccessorPropertyMirrorProto);
+   
+   function createJSONPropertyMutationMirrorOn(objMirror,desc) {
+      var name = desc.data || desc.accessor;
+      return Obj.create(has(desc,'data')?jsonDataPropertyMutableMirrorProto
+                                        :jsonAccessorPropertyMutableMirrorProto,{
+         __in: {value: objMirror},
+         __key: {value: name},
+         __desc:{value: desc},
+         __id: {value: serialNumber++}
+         });
+    };
+
+
+    var mutableJSONFactoryDescriptor = {
+          __createObjMirrorOn: {value: createJSONMutationMirrorOn},
+          __createPropMirrorOn: {value: createJSONPropertyMutationMirrorOn }
+          };
+           
+    var jsonMutationMirrorProto = Obj.create(jsonObjMutableMirrorProto,mutableJSONFactoryDescriptor);
+    var jsonMutationMirrorFunctionProto = Obj.create(
+       mixinFunctionJSONMutableMirror(mixinFunctionJSONMirror(jsonObjMutableMirrorProto)),
+       mutableJSONFactoryDescriptor);
+       
+    function createJSONMutationMirrorOn(obj) {
+       return createJSONObjectMirrorOn(obj,jsonMutationMirrorProto,jsonMutationMirrorFunctionProto);
+    };
+  
+
+
+//------------------------------------------------------------------------------
+    
       
    var exports = {
       introspect: createIntrospectionMirrorOn,
       mutate: createMutationMirrorOn,
+      evaluation: createEvaluationMirrorOn,
       introspectEval: createIntrospectionEvalMirrorOn,
       fullLocal: createMutableEvalMirrorOn,
-      introspectJSON: createJSONMirrorOn
+      introspectJSON: createJSONIntrospectionMirrorOn,
+      mutateJSON: createJSONMutationMirrorOn
    };
    return exports;
 }();

@@ -55,8 +55,16 @@ function array(elementInterface) {};  //expects an array whose elements support 
 
 //--------------- Base Object Introspection Mirrors ---------------------------------
 
+//Basic testing common to all object mirrors 
+var objectBasicMirrorInterface = {
+   sameAs: method({other: objectBasicMirrorInterface}, returns(Boolean)),
+      //is this and the argument both mirrors on the same object?
+   typeof: getAccess(String),
+      //return a string which is the value returned by typeof when applied to the reflected object
+};
+
 //Mirror for introspect upon all objects
-var objectMirrorInterface = {
+var objectMirrorInterface = extendsInterface(objectBasicMirrorInterface, {
    prototype:  getAccess(objectMirrorInterface|null),
       //return a mirror on the reflected object's [[Prototype]]
    extensible: getAccess(Boolean),
@@ -77,12 +85,9 @@ var objectMirrorInterface = {
       //return true if the reflected object has a property named 'name'
    hasOwn: method({name:String}, returns(Boolean)),
       //return true if the reflected object has an own property named 'name'
-   sameAs: method({other: objectMirrorInterface}, returns(Boolean)),
-   typeof: getAccess(String),
-      //return a string which is the value returned by typeof when applied to the reflected object
    specialClass: getAccess(String)
       //return a string which is the value of the reflected object's [[Class]] internal property
-};
+});
 
 //primitive values (undefined, null, numbers, strings, booleans) are reflected as themselves.
 
