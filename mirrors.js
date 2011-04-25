@@ -217,8 +217,10 @@ var Mirrors = function() {
    function mixinFunctionLocalMutableMirror(proto) {
       return Obj.create(proto,{
          //Implements functionMutableMirrorInterface
-         name: {set: function() {throw Error("The name of a local function is immutable")}},
-         source: {set: function() {throw Error("The source code of a local function is immutable")}},
+         name: {get: inheritedGetter(proto,"name"),
+                set: function() {throw Error("The name of a local function is immutable")}},
+         source: {get: inheritedGetter(proto,"source"),
+                  set: function() {throw Error("The source code of a local function is immutable")}},
          toString: {value: function() {return "Function Introspection+Mutation Mirror #"+this.__id}}
        });
     };
@@ -434,6 +436,13 @@ var Mirrors = function() {
  //--- introspection mirrors on an object model of descriptions of a domain of externally defined objects.
  //--- The object mode can be read/written using JSON encoding
  
+   function getJSONPropertyDescriptor (objMirror,name) {
+	  var desc;
+	  objMirror.__domain[objMirror.__ser].props.some(function(p) {
+		 return (p.data===name||p.accessor===name)?(desc=p):false});
+	  return desc;
+   }
+ 
    var jsonObjMirrorProto = Obj.create(objMirrorProto, {
       prototype: {get: function () {return this.__createObjMirrorOn([this.__domain,this.__domain[this.__ser]["[Prototype]"]])}},
       extensible:{get: function () {return this.__domain[this.__ser].extensible===true}},
@@ -442,11 +451,7 @@ var Mirrors = function() {
             .map(function(prop) {return prop.data || prop.accessor})}},
       keys: {get: function () {return this.ownPropertyNames.filter(function(n) {return this.prop(n).enumerable}.bind(this))}},
       prop: {value: function(name) {
-         var desc;
-         this.__domain[this.__ser].props.some(function(p) {
-            return (p.data===name||p.accessor===name)?(desc=p):false});
-         if (desc===undefined) return undefined;
-         return this.__createPropMirrorOn(this,desc);
+         return this.__createPropMirrorOn(this,name);
       }},
       // inherited: lookup: function(name) {},
       typeof: {get: function () {return "object"}},
@@ -491,6 +496,7 @@ var Mirrors = function() {
   function createJSONObjectMirrorOn(domainRef /*domain refObj*/ , proto,functionProto) {
       var domain,ref;
       var type = typeof domainRef;
+      var newSer,isObjDef,isfuncDef;
       if (domainRef===null) return null;
       if (type==='undefined' || type==='number' || type==='boolean' || type==='string')
          return domainRef;
@@ -507,11 +513,28 @@ var Mirrors = function() {
             else return Obj.create(proto,{__domain: {value: domain}, __ser: {value: ref.objRef}, __id: {value: serialNumber++}});
          } else if (has(ref,'extern'))
             return createIntrospectionMirrorOn(eval(ref.extern));
+         else if ((isObjDef=has(ref,'obj')) || (isFuncDef=has(ref,'func'))) {
+            newSer=domain.length;
+            if (isObjDef) ref.obj=newSer;else ref.func=newSer;
+            ref.props = [];
+            domain.push(ref);
+            return createJSONObjectMirrorOn([domain,{objRef:newSer}],proto,functionProto);
         }
-      throw "unknown serialization tag";
+      }
+      throw "unknown serialization tag: "+JSON.stringify(ref);
+    };
+    
+  function jsonReflectedValue(mirror) {
+      if (mirror===null) return null;
+      var type = typeof mirror;
+      if (type==='undefined' || type==='number' || type==='boolean' || type==='string') return mirror;
+      return {objRef: mirror.__ser};
     };
 
-   function createJSONPropertyMirrorOn(objMirror,desc) {
+
+   function createJSONPropertyMirrorOn(objMirror,name) {
+      var desc = getJSONPropertyDescriptor(objMirror,name);
+      if (desc===undefined) return undefined;
       var name = desc.data || desc.accessor;
       return Obj.create(has(desc,'data')?jsonDataPropertyMirrorProto
                                         :jsonAccessorPropertyMirrorProto,{
@@ -540,9 +563,9 @@ var Mirrors = function() {
 
    var jsonObjMutableMirrorProto = Obj.create(jsonObjMirrorProto, {
       //implements objectMirrorInterface + objectMutableMirrorInterface
-      prototype: {get: inheritedGetter(objMirrorProto,"prototype"), set: function (p) {
+      prototype: {get: inheritedGetter(jsonObjMirrorProto,"prototype"), set: function (p) {
          this.__domain[this.__ser]["[Prototype]"]=jsonReflectedValue(p);}},
-      extensible:{get: inheritedGetter(objMirrorProto,"extensible"), set: function (b) {
+      extensible:{get: inheritedGetter(jsonObjMirrorProto,"extensible"), set: function (b) {
          this.__domain[this.__ser].extensible = !!b;}},
       seal: {value: function () {
          this.__domain[this.__ser].props
@@ -556,20 +579,25 @@ var Mirrors = function() {
          return this;}},
       addProperty: {value: function(name, descriptor) {
          if (this.hasOwn(name)) throw Error('Property "'+name+'" already exists');
-         var desc = { };
-         for (var p in descriptor) desc[p]=jsonReflectedValue(descriptor[p]);        
-         Obj.defineProperty(this.__obj,name,desc);
+         var desc;
+         if (has(descriptor,'get') || has(descriptor,'set') )
+            desc = {accessor: name, get: undefined, set: undefined, enumerable: false, configurable: false};
+         else desc = {data: name, value: undefined, writable: false, enumerable: false, configurable: false};
+         for (var p in descriptor) desc[p]=jsonReflectedValue(descriptor[p]);
+         this.__domain[this.__ser].props.push(desc);
          return this.__createPropMirrorOn(this,name);
       }},
-      toString: {value:function() {return "JSON Data Introspection+Mutation Mirror #"+this.__id}}
+      toString: {value:function() {return "JSON Object Introspection+Mutation Mirror #"+this.__id+" on object "+this.__ser}}
    });
    
    function mixinFunctionJSONMutableMirror(proto) {
       return Obj.create(proto,{
          //Implements functionMutableMirrorInterface
-         name: {set: function(n) {this.__domain[this.__ser].name=jsonReflectedValue(n)}},
-         source: {set: function(s) {this.__domain[this.__ser].src=jsonReflectedValue(s)}},
-         toString: {value: function() {return "JSON Function Introspection+Mutation Mirror #"+this.__id}}
+         name: {get: inheritedGetter(proto,"name"),
+                set: function(n) {this.__domain[this.__ser].name=jsonReflectedValue(n)}},
+         source: {get: inheritedGetter(proto,"source"),
+                  set: function(s) {this.__domain[this.__ser].src=jsonReflectedValue(s)}},
+         toString: {value: function() {return "JSON Function Introspection+Mutation Mirror #"+this.__id+" on object "+this.__ser}}
        });
     };
 
@@ -623,8 +651,8 @@ var Mirrors = function() {
 		     delete desc.writable;
 		     desc.accessor=desc.data;
 		     delete desc.data;
-		     desc.get = JSONreflectedValue(get);
-		     desc.set = JSONreflectedValue(set);
+		     desc.get = jsonReflectedValue(get);
+		     desc.set = jsonReflectedValue(set);
 		     return this.__in.prop(this.__key);
          }},		    
          toString: {value: function() {return "JSON Data Property Introspection+Mutation Mirror #"+this.__id}}
@@ -658,7 +686,9 @@ var Mirrors = function() {
    var jsonDataPropertyMutableMirrorProto = mixinMutableJSONDataPropertyMirror(jsonDataPropertyMirrorProto);
    var jsonAccessorPropertyMutableMirrorProto = mixinMutableJSONAccessorPropertyMirror(jsonAccessorPropertyMirrorProto);
    
-   function createJSONPropertyMutationMirrorOn(objMirror,desc) {
+   function createJSONPropertyMutationMirrorOn(objMirror,name) {
+      var desc = getJSONPropertyDescriptor(objMirror,name);
+      if (desc===undefined) return undefined;
       var name = desc.data || desc.accessor;
       return Obj.create(has(desc,'data')?jsonDataPropertyMutableMirrorProto
                                         :jsonAccessorPropertyMutableMirrorProto,{

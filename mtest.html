@@ -4,9 +4,10 @@
 <title>Mirror experiements</title>
 </head>
 <body>
-Loading...
+
+<hr/>
 <script type="text/javascript" src="./mirrors.js"></script>
-<p>JavaScript objects are root at J:</p>
+<p>JavaScript objects for mirror experiments are rooted at J:</p>
 <code> <pre>
 var J= Object.create({a: 1, b:2, get x() {return 'x getter'}}, {
           c: {value: 3},
@@ -24,7 +25,7 @@ Object.defineProperty(J,'z',{value: J, configurable: true, enumerable: true, wri
 Object.preventExtensions(J);
 </script>
 <code> <pre>
-//Run tests of normal objects using J as the root object
+//Run mirror tests on normal objects using J as the root object
 var introspector = Mirrors.introspect;
 var j=introspector(J); j;
 </pre> </code>
@@ -221,6 +222,7 @@ j.lookup("x").setter
 <script type="text/javascript">
 document.write(""+j.lookup("x").setter);
 </script>
+
 <hr />
 <script type="text/javascript" src="./jsonObjSample.js"></script>
 <p>The same mirror interfaces can be used to access non-local objects.  For example a JSON encoding of a graph of objects.
@@ -439,6 +441,7 @@ j.lookup("x").setter
 <script type="text/javascript">
 document.write(""+j.lookup("x").setter);
 </script>
+
 <hr/>
 <p>Testing mirrors that support introspection and evaluation of local objects:</p>
 <code> <pre>
@@ -545,6 +548,7 @@ j.get("f").apply(undefined,introspector([3,{valueOf: function() {return 4}}]))
 <script type="text/javascript">
 document.write(""+j.get("f").apply(undefined,introspector([3,{valueOf: function() {return 4}}])));
 </script>
+
 <hr/>
 <p>Testing mirrors that support introspection and mutation of local objects:</p>
 <code> <pre>
@@ -727,6 +731,7 @@ n.p1x;
 <script type="text/javascript">
 document.write(""+n.p1x);
 </script>
+
 <hr/>
 <p>Testing mirrors that support the full suite of introspection, mutation, and evluation of local objects:</p>
 <code> <pre>
@@ -907,12 +912,14 @@ mn.prototype.sameAs(introspector(Object.prototype))  //should be false
    document.write(""+temp);
 })();
 </script>
+<!---------------
 <code> <pre>
 n.p3   //make sure that an inherited property can be accessed via the real objects
 </pre> </code>
 <script type="text/javascript">
 document.write(""+n.p3);
 </script>
+------>
 <code> <pre>
 mn.extensible=false;
 mn.extensible
@@ -929,6 +936,7 @@ mn.ownPropertyNames
 try {mn.addProperty('p4',{value: "property p4", configurable: true})} catch(e) {document.write(""+e+"<br>")};
 document.write(""+mn.ownPropertyNames);
 </script>
+<!---------------
 <code> <pre>
 mn.freeze();
 n.p1="modified value";
@@ -939,6 +947,7 @@ mn.freeze();
 n.p1="modified value";
 document.write(""+n.p1);
 </script>
+---->
 <p>Recreate n&mn again to do some mutable property tests</p>
 <code> <pre>
 var n= {};
@@ -1015,6 +1024,222 @@ n.p1x;
 document.write(""+n.p1x);
 </script>
 <hr/>
+
+
+<p>Testing mirrors that support both  introspection and mutation of a JSON object domain:</p>
+<code> <pre>
+var D = JSON.parse('[{"obj": 0, "[Prototype]": {"extern": "Object.prototype"}, "extensible": true, "props": [\
+    {"data": "a", "value": 1, "enumerable": true, "configurable": true, "writable": true},\
+    {"data": "b", "value": 2, "enumerable": true, "configurable": true, "writable": false},\
+    {"accessor": "x", "get": {"funcRef": 2}, "enumerable": true, "configurable": true }]},\
+   {"obj":1, "[Prototype]": {"objRef": 0}, "extensible": false, "props": [\
+    {"data": "c", "value": 3, "enumerable": false, "configurable": false, "writable": false},\
+    {"data": "d", "value": 4, "enumerable": false, "configurable": false, "writable": false},\
+    {"data": "z", "value": {"objRef": 1}, "enumerable": true, "configurable": true, "writable": false }]},\
+   {"func":2, "[Prototype]": {"extern": "Function.prototype"}, "src": "function foo() {}", "extensible": true, "props": [\
+    {"data": "prototype", "value": {"objRef": 3}, "enumerable": false, "configurable": true, "writable": true}]},\
+   {"obj": 3, "[Prototype]": {"extern": "Object.prototype"}, "extensible": true, "props": [ \
+    {"data": "constructor", "value": {"objRef": 2}, "enumerable": false, "configurable": true, "writable": true}]}\
+]');
+//Run tests on JSON objects using D as domain of JSON objects
+var introspector = Mirrors.mutateJSON;
+//start with object #1 from the domain
+var j=introspector([D,{objRef: 1}]); j;
+</pre> </code>
+<script type="text/javascript">
+var introspector = Mirrors.mutateJSON;
+var j=introspector([D,{objRef: 1}]);
+document.write(""+j);
+</script>
+<p>First run a few of the same introspection tests on J using a mirror that supports JSON mutation</p>
+<code> <pre>
+j.prototype
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.prototype);
+</script>
+<code> <pre>
+j.extensible
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.extensible);
+</script>
+<code> <pre>
+j.ownProperties
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.ownProperties);
+</script>
+<code> <pre>
+j.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+document.write(""+j.ownPropertyNames);
+</script>
+<p>Now test  mutating the JSON objects using these mirrors</p>
+<code> <pre>
+//create a new object in the Domain D.  Only for test because we haven't formalized JSON object domains
+var n=D.length;
+// a create mutable mirror on a new objecty
+var mn = introspector([D,{"obj": D.length, "[Prototype]": {extern: "Object.prototype"}, extensible: true, props: []}]); mn  
+</pre> </code>
+<script type="text/javascript">
+var n=D.length;
+var mn = introspector([D,{"obj": D.length, "[Prototype]": {extern: "Object.prototype"}, extensible: true, props: []}]);
+document.write(""+mn);
+</script>
+<code> <pre>
+mn.addProperty('p1',{value: "property p1", writable: true, configurable: true});
+var g = {"func": D.length, "[Prototype]": {extern: "Function.prototype"}, extensible: true, props: [], name:"", src: 'function() {return "property p2"}'}
+mn.addProperty('p2',{get: introspector([D,g]), configurable: true});
+mn.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+mn.addProperty('p1',{value: "property p1", configurable: true});
+var g = {"func": D.length, "[Prototype]": {extern: "Function.prototype"}, extensible: true, props: [], name:"", src: 'function() {return "property p2"}'}
+mn.addProperty('p2',{get: introspector([D,g]), configurable: true});
+document.write(""+mn.ownPropertyNames);
+</script>
+<code> <pre>
+JSON.stringify(D[n],null,3);   //see if the properties are there on the JSON object
+</pre> </code>
+<script type="text/javascript">
+document.write("<pre>"+JSON.stringify(D[n],null,3)+"</pre>");
+</script>
+<code> <pre>
+//try to use the mirror to change the objects prototype
+var jp=introspector([D,{"obj": D.length, "[Prototype]": {extern: "Object.prototype"}, extensible: true, props: []}]) 
+try {mn.prototype = jp} catch(e) {e};
+mn.prototype.sameAs(introspector([D,{extern: 'Object.prototype'}]))  //should be false
+</pre> </code>
+<script type="text/javascript">
+var jp=introspector([D,{"obj": D.length, "[Prototype]": {extern: "Object.prototype"}, extensible: true, props: []}]);
+(function () {
+   var temp;
+   try {mn.prototype = jp} catch(e) {temp = e};
+   if (!temp) temp = mn.prototype.sameAs(introspector([D,{extern: 'Object.prototype'}]));
+   document.write(""+temp);
+})();
+</script>
+<!------------ doesn't apply to JSONized objects
+<code> <pre>
+n.p3   //make sure that an inherited property can be accessed via the real objects
+</pre> </code>
+<script type="text/javascript">
+document.write(""+n.p3);
+</script>
+------------>
+<code> <pre>
+mn.extensible=false;
+mn.extensible
+</pre> </code>
+<script type="text/javascript">
+mn.extensible=false;
+document.write(""+mn.extensible);
+</script>
+<code> <pre>
+mn.addProperty('p4',{value: "property p4", configurable: true});
+mn.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+try {mn.addProperty('p4',{value: "property p4", configurable: true})} catch(e) {document.write(""+e+"<br>")};
+document.write(""+mn.ownPropertyNames);
+</script>
+<!------------ doesn't apply to JSONized objects
+<code> <pre>
+mn.freeze();
+n.p1="modified value";
+n.p1
+</pre> </code>
+<script type="text/javascript">
+mn.freeze();
+n.p1="modified value";
+document.write(""+n.p1);
+</script>
+--------------->
+<p>Recreate n&mn again to do some mutable property tests</p>
+<code> <pre>
+var n=D.length;
+var mn = introspector([D,{"obj": D.length, "[Prototype]": {extern: "Object.prototype"}, extensible: true, props: []}]);
+mn.addProperty('p1',{value: "property p1", writable: true, configurable: true});
+mn.addProperty('p2',{get: introspector([D,g]), configurable: true});
+mn.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+var n=D.length;
+var mn = introspector([D,{"obj": D.length, "[Prototype]": {extern: "Object.prototype"}, extensible: true, props: []}]);
+mn.addProperty('p1',{value: "property p1", writable: true, configurable: true});
+mn.addProperty('p2',{get: introspector([D,g]), configurable: true});
+document.write(""+mn.ownPropertyNames);
+</script>
+<code> <pre>
+mn.prop('p1');
+</pre> </code>
+<script type="text/javascript">
+document.write(""+mn.prop('p1'));
+</script>
+<code> <pre>
+mn.prop('p1').name="p1x";
+mn.ownPropertyNames
+</pre> </code>
+<script type="text/javascript">
+mn.prop('p1').name="p1x";
+document.write(""+mn.ownPropertyNames);
+</script>
+<!---------- doesn't apply to JSONized objects
+<code> <pre>
+n.p1x
+</pre> </code>
+<script type="text/javascript">
+document.write(""+n.p1x);
+</script>
+----->
+<code> <pre>
+mn.prop('p1').enumerable; mn.prop('p1').writable;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+mn.prop('p1x').enumerable+" "+ mn.prop('p1x').writable);
+</script>
+<code> <pre>
+mn.prop('p1x').enumerable=true;
+mn.prop('p1x').writable=false;
+mn.prop('p1x').enumerable; mn.prop('p1x').writable;
+</pre> </code>
+<script type="text/javascript">
+mn.prop('p1x').enumerable=true;
+mn.prop('p1x').writable=false;
+document.write(""+mn.prop('p1x').enumerable+" "+ mn.prop('p1x').writable);
+</script>
+<code> <pre>
+var gp2 = {"func": D.length, "[Prototype]": {extern: "Function.prototype"}, extensible: true, props: [], name:"", src: 'function() {return "property p2"}'}
+mn.prop('p1x').becomeAccessorProperty(introspector([D,gp2]));
+</pre> </code>
+<script type="text/javascript">
+var gp2 = {"func": D.length, "[Prototype]": {extern: "Function.prototype"}, extensible: true, props: [], name:"", src: 'function() {return "property p2"}'}
+document.write(""+mn.prop('p1x').becomeAccessorProperty(introspector([D,gp2])));
+</script>
+<!------------ doesn't apply to JSONized objects
+<code> <pre>
+n.p1x;
+</pre> </code>
+<script type="text/javascript">
+document.write(""+n.p1x);
+</script>
+--------->
+<code> <pre>
+mn.prop('p1x').becomeDataProperty("p1x is again a data property",true);
+</pre> </code>
+<script type="text/javascript">
+document.write(""+mn.prop('p1x').becomeDataProperty("p1x is again a data property",true));
+</script>
+<p>Dump the entire updated object domain as a JSON string: </p>
+<code> <pre>
+JSON.stringifgy(D,null,3);
+</pre> </code>
+<script type="text/javascript">
+document.write("<pre>"+JSON.stringify(D,null,3)+"</pre>");
+</script>
+
 
 </body>
 </html>	
