@@ -1,10 +1,11 @@
 # jsmirror - A prototype of a mirrors-based reflection interface for JavaScript
 
 #Files:
- * mirrorsInterfaceSpec.js Specification of the mirror interfaces using an ad hoc interface description language
- * mirrors.js A prototype implementation of the interfaces that supports reflecting over both local and JSON encoded object graphs
- * mtest.html Runs a bunch of tests on mirrors.js.  Also use it as usage samples.
- * jsonObjSample.js Test data used by mtest.html and basic description of encoding
+ * [mirrorsInterfaceSpec.js](https://github.com/allenwb/jsmirrors/blob/master/mirrorsInterfaceSpec.js) Specification of the mirror interfaces using an ad hoc interface description language
+ * [mirrors.js](https://github.com/allenwb/jsmirrors/blob/master/mirrors.js) A prototype implementation of the interfaces that supports reflecting over both local and JSON encoded object graphs
+ * [mtest.html](https://github.com/allenwb/jsmirrors/blob/master/mtest.html) Runs a bunch of tests on mirrors.js.  Also use it as usage samples.
+ * [jsonObjSample.js](https://github.com/allenwb/jsmirrors/blob/master/jsonObjSample.js) Test data used by mtest.html and basic description of encoding. It uses a simple
+ JSON-based encoding for a graph of JavaSript objects including property attributes and other metadata.
 
 
 #Getting started:
