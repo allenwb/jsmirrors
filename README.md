@@ -14,7 +14,7 @@ Run mtest.html to see samples of using jsmirror.  Look at the interface definiti
 The mirrors.js prototype requires a JavaScript implementation that supports ES5 functionality.
 These is limited use of strict mode but in general things will still work without it.
 
-For an introduction to the princples behind mirror based reflection read: [Mirrors: design principles for meta-level facilites of object-oriented programming languages](http://bracha.org/mirrors.pdf) by Gilad Beracha and David Ungar.
+For an introduction to the princples behind mirror based reflection read: [Mirrors: design principles for meta-level facilites of object-oriented programming languages](http://bracha.org/mirrors.pdf) by Gilad Bracha and David Ungar.
 
 
 --------------
