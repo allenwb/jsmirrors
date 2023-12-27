@@ -19,7 +19,7 @@
  * The Original Code is the Narcissus JavaScript engine.
  *
  * The Initial Developer of the Original Code is
- * Allen Wirfs-Brock <allenwb@mozilla.org>.
+ * Allen Wirfs-Brock <allen@wirfs-brock.com>.
  * Portions created by the Initial Developer are Copyright (C) 2011
  * Mozilla Corp. All Rights Reserved.
  *
